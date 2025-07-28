@@ -39,6 +39,10 @@ class Plugin:
         """Add account switcher to the main window"""
         if not isinstance(wallet, MultiAccountWallet):
             return
+        
+        # Clean up any existing switcher for this window to prevent leaks
+        if window in self.account_switchers:
+            self.remove_account_switcher(window)
             
         # Create account switcher widget
         account_switcher = AccountSwitcher(wallet, window)
@@ -100,7 +104,18 @@ class Plugin:
         """Hook to add elements to status bar when it's created"""
         wallet = window.wallet
         if isinstance(wallet, MultiAccountWallet):
-            QTimer.singleShot(100, lambda: self.add_account_switcher(window, wallet))
+            # Use a weak reference to avoid Qt event loop memory leak
+            import weakref
+            window_ref = weakref.ref(window)
+            wallet_ref = weakref.ref(wallet)
+            
+            def add_switcher():
+                w = window_ref()
+                wall = wallet_ref()
+                if w and wall:
+                    self.add_account_switcher(w, wall)
+            
+            QTimer.singleShot(100, add_switcher)
     
     def show_account_overview(self, parent, wallet):
         """Show account overview dialog"""
