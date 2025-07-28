@@ -91,8 +91,23 @@ class DropboxLabelsPlugin(BasePlugin):
     
     def get_account_index(self, wallet: 'Abstract_Wallet') -> int:
         """Get BIP44 account index from wallet."""
+        # Check if this is a multi-account wallet
+        from electrum_dash.multi_account_wallet import MultiAccountWallet
+        if isinstance(wallet, MultiAccountWallet):
+            return wallet.get_current_account()
+        
+        # For standard wallets, try to extract from derivation path
+        if hasattr(wallet, 'keystore') and hasattr(wallet.keystore, 'derivation'):
+            derivation = wallet.keystore.derivation
+            # Parse derivation path like "m/44'/5'/0'"
+            parts = derivation.split('/')
+            if len(parts) >= 4 and parts[3].endswith("'"):
+                try:
+                    return int(parts[3][:-1])  # Remove ' and convert to int
+                except:
+                    pass
+        
         # Default to account 0
-        # TODO: Extract actual account index from derivation path
         return 0
     
     def _get_hardware_keys(self, wallet: 'Abstract_Wallet', account_index: int) -> Tuple[bytes, str]:
