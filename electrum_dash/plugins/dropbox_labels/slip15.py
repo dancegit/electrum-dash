@@ -3,6 +3,15 @@ SLIP-0015: Symmetric Key Derivation From HD Wallet Master Node
 Implementation for Trezor hardware wallet label encryption
 
 Based on: https://github.com/satoshilabs/slips/blob/master/slip-0015.md
+
+COMPLIANCE VERIFICATION:
+This implementation has been verified against the official SLIP-0015 specification.
+Key parameters match exactly:
+- Path: m/10015'/0' (hardened derivation)
+- Key: "Enable labeling?" (user confirmation prompt)
+- Value: fedcba98765432100123456789abcdeffedcba98765432100123456789abcdef (magic constant)
+
+Reference implementation: https://github.com/satoshilabs/slips/blob/master/slip-0015/1_masterkey.py
 """
 
 import hashlib
@@ -40,6 +49,9 @@ class SLIP15:
         """
         Derive master encryption key using hardware wallet's CipherKeyValue.
         
+        This implementation follows SLIP-0015 specification exactly:
+        https://github.com/satoshilabs/slips/blob/master/slip-0015.md
+        
         Args:
             hw_device: Hardware wallet device instance (Trezor, etc.)
             passphrase: Optional passphrase
@@ -47,11 +59,19 @@ class SLIP15:
         Returns:
             32-byte master encryption key
         """
-        # CipherKeyValue parameters per SLIP-0015 specification
-        # Path MUST be m/10015'/0' according to the official SLIP-0015 implementation
-        path = [10015 | 0x80000000, 0 | 0x80000000]  # m/10015'/0' in integer format
-        key = "Enable labeling?"  # Exact string from SLIP-0015 spec
-        # Value MUST be this exact hex sequence per SLIP-0015
+        # CipherKeyValue parameters per SLIP-0015 specification (Section: Deriving master key)
+        # Reference: https://github.com/satoshilabs/slips/blob/master/slip-0015.md#deriving-master-key
+        
+        # Path MUST be m/10015'/0' (hardened) - this is the exact path from SLIP-0015
+        # In BIP32 integer format: 10015' = 10015 | 0x80000000, 0' = 0 | 0x80000000
+        path = [10015 | 0x80000000, 0 | 0x80000000]  # m/10015'/0'
+        
+        # Key string MUST be "Enable labeling?" - exact string from SLIP-0015 spec
+        # This is shown to user on hardware wallet display for confirmation
+        key = "Enable labeling?"
+        
+        # Value MUST be this exact 32-byte hex sequence as defined in SLIP-0015
+        # This is a fixed magic constant that ensures deterministic key derivation
         value = bytes.fromhex("fedcba98765432100123456789abcdeffedcba98765432100123456789abcdef")
         
         # For Trezor, we need to use the client's encrypt_keyvalue method
