@@ -122,8 +122,37 @@ class DropboxLabelsPlugin(BasePlugin):
             self.logger.info("Dropbox not authenticated for wallet")
             return
             
-        # TODO: Implement actual Dropbox sync
-        self.logger.info(f"Would sync label for {item}: {label}")
+        try:
+            # For efficiency, we'll batch label updates
+            # Download current labels, update, and re-upload
+            labels = await self.pull_labels(wallet, force=False)
+            
+            # Update the specific label
+            if label:
+                labels[item] = label
+            else:
+                # Empty label means deletion
+                labels.pop(item, None)
+            
+            # Re-upload all labels
+            encryption_key = self.get_encryption_key(wallet)
+            encrypted_data = TrezorSuiteFormat.pack_labels(labels, encryption_key)
+            
+            filename = self.get_label_filename(wallet)
+            filepath = self.get_dropbox_folder(wallet) + filename
+            
+            dbx = self.get_dropbox_client(wallet)
+            dbx.files_upload(
+                encrypted_data,
+                filepath,
+                mode=WriteMode.overwrite,
+                mute=True
+            )
+            
+            self.logger.info(f"Synced label for {item}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to sync label: {e}")
     
     async def push_labels(self, wallet: 'Abstract_Wallet'):
         """Push all labels to Dropbox"""
