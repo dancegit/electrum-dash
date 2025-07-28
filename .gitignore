@@ -1,4 +1,5 @@
 ####-*.patch
+.mcp.json
 *.pyc
 *.swp
 .DS_Store
