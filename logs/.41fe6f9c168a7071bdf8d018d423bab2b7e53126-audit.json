@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/home/clauderun/Tmux-Orchestrator/registry/projects/dropbox-labeling-and-multi-wallet-display-for-electrum-dash/worktrees/developer/logs/.41fe6f9c168a7071bdf8d018d423bab2b7e53126-audit.json",
+    "files": [
+        {
+            "date": 1753698208820,
+            "name": "/home/clauderun/Tmux-Orchestrator/registry/projects/dropbox-labeling-and-multi-wallet-display-for-electrum-dash/worktrees/developer/logs/mcp-puppeteer-2025-07-28.log",
+            "hash": "3cffabaf08fa68b7487384f90b9802684ffe26bfcb00432b57da3fc5590cf699"
+        }
+    ],
+    "hashType": "sha256"
+}

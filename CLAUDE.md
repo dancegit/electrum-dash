@@ -140,3 +140,25 @@ protoc --proto_path=electrum_dash/ --python_out=electrum_dash/ electrum_dash/pay
 - Wallet format differs from standard Electrum
 - Hardware wallet support requires additional dependencies
 - Mobile builds use Kivy and python-for-android (p4a)
+
+# MANDATORY: Tmux Orchestrator Rules
+
+**CRITICAL**: You MUST read and follow ALL instructions in:
+`/home/clauderun/Tmux-Orchestrator/CLAUDE.md`
+
+**Your worktree location**: `/home/clauderun/Tmux-Orchestrator/registry/projects/dropbox-labeling-and-multi-wallet-display-for-electrum-dash/worktrees/developer`
+**Original project location**: `/home/clauderun/electrum-dash`
+
+The orchestrator rules file contains MANDATORY instructions for:
+- 🚨 Git discipline and branch protection (NEVER merge to main unless you started on main)
+- 💬 Communication protocols between agents
+- ✅ Quality standards and verification procedures  
+- 🔄 Self-scheduling requirements
+- 🌳 Git worktree collaboration guidelines
+
+**IMMEDIATE ACTION REQUIRED**: Use the Read tool to read /home/clauderun/Tmux-Orchestrator/CLAUDE.md before doing ANY work.
+
+Failure to follow these rules will result in:
+- Lost work due to improper git usage
+- Conflicts between agents
+- Failed project delivery
