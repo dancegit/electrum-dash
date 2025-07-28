@@ -31,6 +31,27 @@ from .network_failure_simulator import (
     slow_network
 )
 
+from .trezor_emulator import (
+    TrezorDevice,
+    TrezorEmulator,
+    TrezorConfirmationFlow,
+    SLIP0015,
+    TrezorTestFixtures
+)
+
+from .hardware_wallet_test_harness import (
+    HardwareWalletTestHarness,
+    SLIP0015TestSuite,
+    HardwareConfirmationTestSuite,
+    CrossAppCompatibilityTests,
+    HardwareWalletPerformanceTests,
+    hardware_wallet_harness,
+    trezor_device,
+    slip0015_suite,
+    confirmation_suite,
+    performance_suite
+)
+
 __all__ = [
     # OAuth2
     'OAuth2TestHarness',
@@ -54,5 +75,22 @@ __all__ = [
     'network_simulator',
     'timeout_network',
     'flaky_network',
-    'slow_network'
+    'slow_network',
+    
+    # Hardware Wallet
+    'TrezorDevice',
+    'TrezorEmulator',
+    'TrezorConfirmationFlow',
+    'SLIP0015',
+    'TrezorTestFixtures',
+    'HardwareWalletTestHarness',
+    'SLIP0015TestSuite',
+    'HardwareConfirmationTestSuite',
+    'CrossAppCompatibilityTests',
+    'HardwareWalletPerformanceTests',
+    'hardware_wallet_harness',
+    'trezor_device',
+    'slip0015_suite',
+    'confirmation_suite',
+    'performance_suite'
 ]
