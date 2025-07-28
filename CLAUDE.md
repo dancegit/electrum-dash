@@ -146,7 +146,7 @@ protoc --proto_path=electrum_dash/ --python_out=electrum_dash/ electrum_dash/pay
 **CRITICAL**: You MUST read and follow ALL instructions in:
 `/home/clauderun/Tmux-Orchestrator/CLAUDE.md`
 
-**Your worktree location**: `/home/clauderun/Tmux-Orchestrator/registry/projects/dropbox-labeling-and-multi-wallet-display-for-electrum-dash/worktrees/developer`
+**Your worktree location**: `/home/clauderun/Tmux-Orchestrator/registry/projects/dropbox-labeling-and-multi-wallet-display-for-electrum-dash/worktrees/tester`
 **Original project location**: `/home/clauderun/electrum-dash`
 
 The orchestrator rules file contains MANDATORY instructions for:
