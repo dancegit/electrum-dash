@@ -3,7 +3,7 @@ import hashlib
 import json
 import os
 import base64
-from typing import Union, Optional, Dict, Any, TYPE_CHECKING
+from typing import Union, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from datetime import datetime, timezone
 import hmac
 import secrets
@@ -27,7 +27,8 @@ except ImportError:
 # Local imports
 from .encryption import AESGCMEncryption, TrezorSuiteFormat
 from .auth import DropboxOAuth2
-from .config import DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_FOLDER
+from .config import DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_FOLDER, USE_HARDWARE_ENCRYPTION
+from .slip15 import TrezorLabelEncryption, SLIP15Purpose
 
 if TYPE_CHECKING:
     from electrum_dash.wallet import Abstract_Wallet
@@ -66,9 +67,39 @@ class DropboxLabelsPlugin(BasePlugin):
     
     def get_encryption_key(self, wallet: 'Abstract_Wallet') -> bytes:
         """Get AES-256 encryption key for Dropbox storage"""
+        # Check if this is a hardware wallet
+        if self.is_hardware_wallet(wallet) and USE_HARDWARE_ENCRYPTION:
+            try:
+                # Use SLIP-0015 for hardware wallets
+                account_index = self.get_account_index(wallet)
+                encryption_key, _ = self._get_hardware_keys(wallet, account_index)
+                return encryption_key
+            except Exception as e:
+                self.logger.warning(f"Failed to use hardware encryption: {e}")
+                # Fall back to software encryption
+        
+        # Software wallet or fallback
         password, _, _ = self.wallets[wallet]
         # Derive proper 256-bit key from password
         return hashlib.sha256(password).digest()
+    
+    def is_hardware_wallet(self, wallet: 'Abstract_Wallet') -> bool:
+        """Check if wallet uses hardware device."""
+        return (hasattr(wallet, 'keystore') and 
+                hasattr(wallet.keystore, 'plugin') and
+                hasattr(wallet.keystore.plugin, 'get_client'))
+    
+    def get_account_index(self, wallet: 'Abstract_Wallet') -> int:
+        """Get BIP44 account index from wallet."""
+        # Default to account 0
+        # TODO: Extract actual account index from derivation path
+        return 0
+    
+    def _get_hardware_keys(self, wallet: 'Abstract_Wallet', account_index: int) -> Tuple[bytes, str]:
+        """Get encryption key and filename using hardware wallet."""
+        hw_device = wallet.keystore.plugin
+        trezor_encryption = TrezorLabelEncryption(hw_device)
+        return trezor_encryption.get_label_keys(account_index)
     
     def get_wallet_id(self, wallet: 'Abstract_Wallet') -> str:
         """Get unique wallet identifier"""
@@ -87,12 +118,21 @@ class DropboxLabelsPlugin(BasePlugin):
         For hardware wallets using SLIP-0015, this will be the hex-encoded account fingerprint.
         For software wallets, use wallet_id.
         """
+        # Check if this is a hardware wallet
+        if self.is_hardware_wallet(wallet) and USE_HARDWARE_ENCRYPTION:
+            try:
+                # Use SLIP-0015 filename generation
+                _, filename = self._get_hardware_keys(wallet, account_index)
+                return filename
+            except Exception as e:
+                self.logger.warning(f"Failed to get hardware filename: {e}")
+                # Fall back to standard naming
+        
+        # Software wallet or fallback
         wallet_id = self.get_wallet_id(wallet)
         if not wallet_id:
             return None
             
-        # TODO: Implement SLIP-0015 fingerprint calculation for hardware wallets
-        # For now, use wallet_id + account_index
         if account_index > 0:
             filename = f"{wallet_id}_account_{account_index}.mtdt"
         else:
@@ -348,3 +388,60 @@ class DropboxLabelsPlugin(BasePlugin):
         if wallet_id:
             self.dropbox_tokens.pop(wallet_id, None)
             wallet.db.put('dropbox_oauth_token', None)
+    
+    async def import_trezor_suite_labels(self, wallet: 'Abstract_Wallet') -> Dict[str, str]:
+        """
+        Import existing labels from Trezor Suite.
+        Looks in /Apps/TREZOR/ folder for compatible .mtdt files.
+        """
+        if not self.is_authenticated(wallet):
+            raise Exception("Dropbox not authenticated")
+            
+        if not DROPBOX_AVAILABLE:
+            raise Exception("Dropbox package not installed")
+            
+        if not self.is_hardware_wallet(wallet):
+            raise Exception("This feature requires a hardware wallet")
+            
+        try:
+            dbx = self.get_dropbox_client(wallet)
+            
+            # List files in Trezor Suite folder
+            trezor_folder = "/Apps/TREZOR/"
+            result = dbx.files_list_folder(trezor_folder)
+            
+            # Get encryption key for this wallet
+            encryption_key = self.get_encryption_key(wallet)
+            
+            imported_labels = {}
+            
+            # Try to decrypt each .mtdt file
+            for entry in result.entries:
+                if entry.name.endswith('.mtdt'):
+                    try:
+                        # Download file
+                        filepath = trezor_folder + entry.name
+                        metadata, response = dbx.files_download(filepath)
+                        encrypted_data = response.content
+                        
+                        # Try to decrypt with our key
+                        labels = TrezorSuiteFormat.unpack_labels(encrypted_data, encryption_key)
+                        
+                        # If successful, these are our labels
+                        imported_labels.update(labels)
+                        self.logger.info(f"Successfully imported labels from {entry.name}")
+                        
+                    except Exception as e:
+                        # This file is for a different wallet/account
+                        self.logger.debug(f"Could not decrypt {entry.name}: {e}")
+                        continue
+            
+            # Update wallet with imported labels
+            for key, value in imported_labels.items():
+                wallet._set_label(key, value)
+            
+            return imported_labels
+            
+        except Exception as e:
+            self.logger.error(f"Failed to import Trezor Suite labels: {e}")
+            raise

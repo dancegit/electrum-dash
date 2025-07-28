@@ -98,6 +98,35 @@ class LabelsThread(QThread):
             self.error.emit(str(e))
 
 
+class ImportThread(QThread):
+    """Background thread for importing Trezor Suite labels"""
+    progress = pyqtSignal(str)
+    success = pyqtSignal(int)  # Number of labels imported
+    error = pyqtSignal(str)
+    
+    def __init__(self, plugin, wallet):
+        QThread.__init__(self)
+        self.plugin = plugin
+        self.wallet = wallet
+        
+    def run(self):
+        try:
+            self.progress.emit(_('Searching for Trezor Suite labels...'))
+            
+            # Run import in event loop
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            imported_labels = loop.run_until_complete(
+                self.plugin.import_trezor_suite_labels(self.wallet)
+            )
+            
+            self.success.emit(len(imported_labels))
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class Plugin(DropboxLabelsPlugin):
     """Qt GUI integration for Dropbox Labels plugin"""
     
@@ -290,10 +319,45 @@ class EncodingDialog(WindowModalDialog):
     
     def import_trezor_labels(self):
         """Import existing labels from Trezor Suite"""
-        # TODO: Implement import from /Apps/TREZOR/
-        QMessageBox.information(self, _('Import from Trezor Suite'),
-                              _('This feature will import your existing Trezor Suite labels.\n'
-                                'Coming soon!'))
+        if not self.plugin.is_authenticated(self.wallet):
+            QMessageBox.warning(self, _('Not Connected'),
+                              _('Please connect to Dropbox first.'))
+            return
+            
+        reply = QMessageBox.question(self, _('Import Trezor Suite Labels'),
+                                   _('This will search for and import any existing Trezor Suite labels.\n\n'
+                                     'Your Trezor will ask for confirmation to decrypt the labels.\n\n'
+                                     'Continue?'),
+                                   QMessageBox.Yes | QMessageBox.No)
+        
+        if reply == QMessageBox.Yes:
+            self.start_import_thread()
+    
+    def start_import_thread(self):
+        """Start import operation in background thread"""
+        if self.thread and self.thread.isRunning():
+            QMessageBox.warning(self, _('Operation in Progress'),
+                              _('Please wait for the current operation to complete.'))
+            return
+            
+        self.thread = ImportThread(self.plugin, self.wallet)
+        self.thread.progress.connect(self.on_progress)
+        self.thread.success.connect(self.on_import_success)
+        self.thread.error.connect(self.on_error)
+        
+        # Disable buttons during import
+        self.pull_button.setEnabled(False)
+        self.push_button.setEnabled(False)
+        
+        self.thread.start()
+    
+    def on_import_success(self, count):
+        """Handle successful import"""
+        self.status_label.setText(_('Import completed successfully!'))
+        self.pull_button.setEnabled(True)
+        self.push_button.setEnabled(True)
+        QMessageBox.information(self, _('Import Complete'),
+                              _('Successfully imported {} labels from Trezor Suite.').format(count))
     
     def accept(self):
         """Save settings when dialog is closed"""
