@@ -209,7 +209,8 @@ class MockDropboxOAuth:
         """Mock token retrieval"""
         # In real implementation, this would decrypt the token
         if self.stored_token:
-            return eval(self.stored_token["encrypted"])
+            import ast
+            return ast.literal_eval(self.stored_token["encrypted"])
         return None
 
 

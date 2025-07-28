@@ -61,7 +61,8 @@ class MockElectrumDash:
                     def unpack_labels(encrypted_data, key):
                         # Mock unpack implementation
                         if encrypted_data.get("encrypted"):
-                            return eval(encrypted_data["data"])
+                            import ast
+                            return ast.literal_eval(encrypted_data["data"])
                         return {}
             
             class sync:
