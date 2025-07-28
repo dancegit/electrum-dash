@@ -47,10 +47,12 @@ class SLIP15:
         Returns:
             32-byte master encryption key
         """
-        # CipherKeyValue parameters per SLIP-0015
-        path = []  # Empty path for master key
-        key = self.DOMAIN.decode('utf-8')  # "SLIP-0015"
-        value = hashlib.sha256(self.DOMAIN).digest()
+        # CipherKeyValue parameters per SLIP-0015 specification
+        # Path MUST be m/10015'/0' according to the official SLIP-0015 implementation
+        path = [10015 | 0x80000000, 0 | 0x80000000]  # m/10015'/0' in integer format
+        key = "Enable labeling?"  # Exact string from SLIP-0015 spec
+        # Value MUST be this exact hex sequence per SLIP-0015
+        value = bytes.fromhex("fedcba98765432100123456789abcdeffedcba98765432100123456789abcdef")
         
         # For Trezor, we need to use the client's encrypt_keyvalue method
         try:

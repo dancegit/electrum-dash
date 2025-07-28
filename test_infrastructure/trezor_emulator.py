@@ -1,6 +1,20 @@
 """
 Trezor Device Emulator for Hardware Wallet Testing
 Provides mock Trezor device responses and SLIP-0015 implementation
+
+⚠️ ⚠️ ⚠️ SECURITY WARNING ⚠️ ⚠️ ⚠️
+================================================================================================
+THIS IS A MOCK IMPLEMENTATION FOR TESTING PURPOSES ONLY!
+DO NOT USE THIS CODE IN PRODUCTION!
+================================================================================================
+
+This emulator provides MOCK encryption that is NOT SECURE:
+- The encryption is a simple byte reversal, NOT real encryption
+- The key derivation is simplified and NOT cryptographically secure
+- This is ONLY for testing the integration flow, NOT for security
+
+NEVER USE THIS CODE FOR REAL WALLET OPERATIONS!
+================================================================================================
 """
 
 import hashlib
@@ -14,7 +28,12 @@ import base64
 
 @dataclass
 class TrezorDevice:
-    """Mock Trezor device state"""
+    """
+    Mock Trezor device state
+    
+    ⚠️ WARNING: This is a MOCK device for testing only!
+    It does NOT provide real security!
+    """
     device_id: str = "test_trezor_device_001"
     label: str = "Test Trezor"
     initialized: bool = True
@@ -30,17 +49,25 @@ class TrezorDevice:
 
 
 class SLIP0015:
-    """Implementation of SLIP-0015 for deterministic key derivation"""
+    """
+    Implementation of SLIP-0015 for deterministic key derivation
+    
+    ⚠️ SECURITY WARNING: This is a MOCK implementation!
+    Real SLIP-0015 uses proper BIP32 derivation - this does NOT!
+    """
     
     @staticmethod
     def derive_wallet_encryption_key(master_node: bytes, passphrase: str = "") -> bytes:
         """
         Derive wallet encryption key according to SLIP-0015
         
+        ⚠️ WARNING: This is MOCK key derivation for testing only!
+        DO NOT USE IN PRODUCTION!
+        
         Path: m/10015'/0'
         Returns: 32-byte symmetric encryption key
         """
-        # Mock implementation of SLIP-0015
+        # ⚠️ MOCK implementation of SLIP-0015 - NOT SECURE!
         # In real implementation, this would use proper BIP32 derivation
         
         # Simulate BIP32 derivation at m/10015'/0'
@@ -67,9 +94,24 @@ class SLIP0015:
 
 
 class TrezorEmulator:
-    """Emulates Trezor device for testing"""
+    """
+    Emulates Trezor device for testing
+    
+    🚨 CRITICAL WARNING 🚨
+    ====================
+    THIS IS A TESTING MOCK - NOT SECURE!
+    - Uses byte reversal instead of encryption
+    - Mock key derivation - NOT SLIP-0015 compliant
+    - FOR TESTING ONLY - NEVER USE IN PRODUCTION!
+    ====================
+    """
     
     def __init__(self):
+        print("\n" + "="*80)
+        print("🚨 TREZOR EMULATOR INITIALIZED - MOCK IMPLEMENTATION FOR TESTING ONLY! 🚨")
+        print("⚠️  This provides NO REAL SECURITY - DO NOT USE IN PRODUCTION! ⚠️")
+        print("="*80 + "\n")
+        
         self.device = TrezorDevice()
         self.slip0015 = SLIP0015()
         
@@ -180,12 +222,21 @@ class TrezorEmulator:
             hashlib.sha256
         ).digest()
         
+        # ⚠️ ⚠️ ⚠️ CRITICAL SECURITY WARNING ⚠️ ⚠️ ⚠️
+        # THIS IS NOT REAL ENCRYPTION - TESTING ONLY!
+        # Using simple byte reversal instead of XOR for clarity
+        # NEVER USE THIS IN PRODUCTION!
+        
         if encrypt:
-            # Mock encryption (XOR for simplicity)
-            result = bytes(a ^ b for a, b in zip(value, derived_key * (len(value) // 32 + 1)))
+            # ⚠️ MOCK encryption: Simple byte reversal - NOT SECURE!
+            # Real Trezor uses proper encryption algorithms
+            result = value[::-1]  # Just reverse the bytes - INSECURE!
+            print("⚠️ WARNING: Using MOCK encryption (byte reversal) - NOT SECURE!")
         else:
-            # Mock decryption (same as encryption for XOR)
-            result = bytes(a ^ b for a, b in zip(value, derived_key * (len(value) // 32 + 1)))
+            # ⚠️ MOCK decryption: Reverse the reversal
+            # This is NOT how real encryption works!
+            result = value[::-1]  # Reverse again to "decrypt" - INSECURE!
+            print("⚠️ WARNING: Using MOCK decryption (byte reversal) - NOT SECURE!")
         
         return {
             "value": base64.b64encode(result).decode('utf-8'),
