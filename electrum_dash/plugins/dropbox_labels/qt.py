@@ -158,7 +158,10 @@ class Plugin(DropboxLabelsPlugin):
     
     def settings_widget(self, window):
         """Create the settings widget"""
-        return EncodingDialog(window, self, window.wallet)
+        # window here is the settings dialog, get the main window and wallet
+        main_window = window.parent()
+        wallet = main_window.wallet
+        return EncodingDialog(window, self, wallet)
     
     @hook
     def init_menubar_tools(self, window, tools_menu):

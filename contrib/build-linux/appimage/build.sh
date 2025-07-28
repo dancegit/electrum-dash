@@ -79,6 +79,8 @@ info "installing electrum and its dependencies."
 "$python" -m pip install --no-dependencies --no-warn-script-location \
     --cache-dir "$PIP_CACHE_DIR" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
 "$python" -m pip install --no-dependencies --no-warn-script-location \
+    --cache-dir "$PIP_CACHE_DIR" -r "$CONTRIB/deterministic-build/requirements-dropbox.txt"
+"$python" -m pip install --no-dependencies --no-warn-script-location \
     --cache-dir "$PIP_CACHE_DIR" x11_hash==1.4
 
 "$python" -m pip install --no-dependencies --no-warn-script-location \
