@@ -6,8 +6,7 @@ import base64
 from typing import Dict, Any
 
 from electrum_dash.tests import ElectrumTestCase
-# These imports will be updated when actual implementation is available
-# from electrum_dash.plugins.dropbox_labels.encryption import DropboxLabelEncryption
+from electrum_dash.plugins.dropbox_labels.encryption import AESGCMEncryption, TrezorSuiteFormat
 
 
 class TestDropboxEncryption(ElectrumTestCase):
@@ -79,6 +78,9 @@ class TestDropboxEncryption(ElectrumTestCase):
         
     def test_encryption_decryption_roundtrip(self):
         """Test ENC-003: Verify data integrity through encryption/decryption"""
+        # Generate test key
+        key = os.urandom(32)
+        
         test_cases = [
             # Empty labels
             {},
@@ -95,16 +97,12 @@ class TestDropboxEncryption(ElectrumTestCase):
         ]
         
         for test_data in test_cases:
-            # Mock encryption/decryption
-            plaintext = json.dumps(test_data).encode('utf-8')
-            
-            # In real implementation:
-            # ciphertext = encrypt_labels(test_data, key)
-            # decrypted = decrypt_labels(ciphertext, key)
-            
-            # For now, just verify JSON serialization works
-            decrypted = json.loads(plaintext.decode('utf-8'))
-            self.assertEqual(test_data, decrypted)
+            with self.subTest(labels=len(test_data)):
+                # Test using TrezorSuiteFormat
+                encrypted_data = TrezorSuiteFormat.pack_labels(test_data, key)
+                decrypted_data = TrezorSuiteFormat.unpack_labels(encrypted_data, key)
+                
+                self.assertEqual(test_data, decrypted_data)
             
     def test_random_iv_generation(self):
         """Test ENC-001: Verify random IV for each encryption"""
