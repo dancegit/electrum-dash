@@ -1,0 +1,73 @@
+{
+  "mcpServers": {
+    "tmux": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "tmux-mcp",
+        "--shell-type=bash"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_f9753529ac6080303f156dec8f2e641e96130e22"
+      ]
+    },
+    "modal-mcp-server": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "--project",
+        "/home/per/gitrepos/modal-mcp-server",
+        "run",
+        "/home/per/gitrepos/modal-mcp-server/src/modal_mcp/server.py"
+      ],
+      "env": {}
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "BSA1RkmN4oBGhYm6rwRVjtgFNEseNTp"
+      }
+    },
+    "puppeteer": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "puppeteer-mcp-server"
+      ],
+      "env": {}
+    },
+    "firecrawl": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "firecrawl-mcp"
+      ],
+      "env": {}
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    }
+  }
+}

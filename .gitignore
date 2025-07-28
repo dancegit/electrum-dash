@@ -1,31 +1,34 @@
-####-*.patch
-.mcp.json
-*.pyc
-*.swp
-.DS_Store
-build/
-dist/
-electrum_dash/locale/
-.devlocaltmp/
-*_trial_temp
-packages
-env*/
-env
-.tox/
-.buildozer/
-bin/
-/app.fil
+# Virtual environments
+test-venv/
+venv/
+env/
 
-# tox files
-.cache/
-.pytest_cache/
+# Test results
+test-results/
+test-metrics/
+*.xml
+*.html
+htmlcov/
 .coverage
+coverage.json
 
-electrum_data/
-electrum_dash/gui/kivy/theming/light-0.png
-electrum_dash/gui/kivy/theming/light-1.png
-electrum_dash/gui/kivy/theming/light.atlas
-electrum_dash/gui/kivy/theming/atlas/light-0.png
-electrum_dash/gui/kivy/theming/atlas/light-1.png
-electrum_dash/gui/kivy/theming/atlas/light.atlas
-*.egg-info/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
